@@ -9,8 +9,18 @@ app = Flask(__name__)
 # Initialize Instaloader, Gradio client, and Gemini
 L = instaloader.Instaloader()
 gradio_client = Client("malavika-2016/scene_analysis")
-genai.configure(api_key=os.getenv("GENAI_API_KEY"))  # Add your API key here
+
+# Fetch the API key from the environment variable
+genai_api_key = os.getenv("GENAI_API_KEY")
+if not genai_api_key:
+    raise ValueError("GENAI_API_KEY environment variable is not set!")
+genai.configure(api_key=genai_api_key)  # Use the API key for Gemini
 model = genai.GenerativeModel("gemini-1.5-flash")
+
+# Root route to prevent 404 errors and to check if the app is working
+@app.route('/')
+def home():
+    return "Flask API is running! Welcome to the Instagram Post Analysis Service."
 
 # Function to generate a caption using Gradio API
 def generate_caption_with_gradio(image_path):
@@ -21,14 +31,8 @@ def generate_caption_with_gradio(image_path):
 def generate_description_with_gemini(caller_name, caption, date_posted, image_caption):
     prompt = f"Consider '{caller_name}' as either a person’s name or a relationship the user has with them (e.g., 'Father', 'Daughter'). If '{caller_name}' is a name, assume it refers to that person directly. If '{caller_name}' refers to a relationship, understand it as such (e.g., 'Father' means the user’s father). Now, '{caller_name}' has posted on Instagram with this caption: '{caption}', on the date: '{date_posted}'. The image is described as: '{image_caption}'. Provide a summary of this post to the user as if they are receiving an update from their loved one, focusing on the key details and context for better understanding."
 
-
     response = model.generate_content(prompt)
     return response.text
-    
-@app.route('/')
-def home():
-    return "Welcome to my app!"
-
 
 @app.route('/download_latest', methods=['POST'])
 def download_latest_post():
