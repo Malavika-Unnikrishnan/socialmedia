@@ -24,6 +24,11 @@ def generate_description_with_gemini(caller_name, caption, date_posted, image_ca
 
     response = model.generate_content(prompt)
     return response.text
+    
+@app.route('/')
+def home():
+    return "Welcome to my app!"
+
 
 @app.route('/download_latest', methods=['POST'])
 def download_latest_post():
